@@ -1,36 +1,33 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const HomePage = () => {
-	const [usuario, setUsuario] = useState({
-		nombre: "",
-		correo: ""
-	});
-
+const EditarPage = ({ suscripcion }) => {
+	const [sub, setSub] = useState(suscripcion);
 	const [mensaje, setMensaje] = useState("");
 
 	const onChange = (event) => {
-		setUsuario({
-			...usuario,
+		setSub({
+			...sub,
 			[event.target.name]: event.target.value
 		});
 	};
 
 	const onSubmit = async (event) => {
 		event.preventDefault();
-		const { nombre, correo } = usuario;
-		const { data } = await axios.post("http://localhost:3000/api/suscripcion", {
+		const { nombre, correo } = sub;
+		const { data } = await axios.put("http://localhost:3000/api/suscripcion", {
+			id: sub._id,
 			nombre,
 			correo
 		});
 		setMensaje(data);
-		setUsuario({ nombre: "", correo: "" });
+		setSub({ nombre: "", correo: "" });
 	};
 
 	return (
 		<div>
 			<form onSubmit={onSubmit} className="bg-yellow-300 m-2 p-2 rounded">
-				<h1 className="p-2 text-xl">Suscríbete a correos electrónicos</h1>
+				<h1 className="p-2 text-xl">Actualiza tu información.</h1>
 				{mensaje && (
 					<p className="border border-blue-400 p-2 rounded">{mensaje}</p>
 				)}
@@ -43,7 +40,7 @@ const HomePage = () => {
 						type="text"
 						placeholder="Ingresa el nombre"
 						name="nombre"
-						value={usuario.nombre}
+						value={sub.nombre}
 						onChange={onChange}
 					/>
 				</div>
@@ -56,13 +53,13 @@ const HomePage = () => {
 						type="text"
 						placeholder="Ingresa el nombre"
 						name="correo"
-						value={usuario.correo}
+						value={sub.correo}
 						onChange={onChange}
 					/>
 				</div>
 				<div className="p-2">
 					<button className="p-2 m-2 text-white bg-green-500" type="submit">
-						Suscríbete
+						Actualizar
 					</button>
 				</div>
 			</form>
@@ -70,4 +67,20 @@ const HomePage = () => {
 	);
 };
 
-export default HomePage;
+export async function getServerSideProps({ query: { id } }) {
+	console.log(id);
+
+	const { data } = await axios.get(`http://localhost:3000/api/suscripcion`, {
+		params: {
+			accion: "sencilla",
+			id: id
+		}
+	});
+	return {
+		props: {
+			suscripcion: data
+		}
+	};
+}
+
+export default EditarPage;
